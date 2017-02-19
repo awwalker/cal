@@ -15,6 +15,8 @@ func main() {
 	}
 	app := registerApp()
 	app.RunAndExitOnError()
+
+	registerCmd(addCal)
 }
 
 func registerApp() *cli.App {
@@ -34,3 +36,10 @@ func initCal() error {
 	}
 	return nil
 }
+
+var commands = []cli.Command{}
+
+func registerCmd(cmd cli.Command) {
+	commands = append(commands, cmd)
+}
+
