@@ -15,11 +15,11 @@ func main() {
 	}
 	app := registerApp()
 	app.RunAndExitOnError()
-
-	registerCmd(addCal)
 }
 
 func registerApp() *cli.App {
+	registerCmd(addCalCmd)
+
 	app := cli.NewApp()
 	app.Usage = "Manage calendar from the Command Line"
 	app.Flags = append(calFlags, globalCalFlags...)
@@ -42,4 +42,3 @@ var commands = []cli.Command{}
 func registerCmd(cmd cli.Command) {
 	commands = append(commands, cmd)
 }
-

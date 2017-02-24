@@ -1,18 +1,21 @@
-package main 
+package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"bufio"
+
+	"github.com/urfave/cli"
 )
 
-var configCalCmd = cli.Command {
-	Name: "addCal",
-	Usage: "Configure new calendar",
+var addCalCmd = cli.Command{
+	Name:   "addCal",
+	Usage:  "Configure new calendar",
+	Action: addCal,
 }
 
-func addCal() (bool, error){
-	cfg, err := loadConfig()
+func addCal() (bool, error) {
+	cfg, err := loadCalConfig()
 	if err != nil {
 		return false, err
 	}
@@ -21,10 +24,13 @@ func addCal() (bool, error){
 	newCal := new(calendar)
 
 	fmt.Println("Enter calendar alias: ")
-	newCal.Alias, _ := reader.ReadString('\n')
+	aliasTemp, _ := reader.ReadString('\n')
+	newCal.Alias = aliasTemp
 
 	// TODO: repeat for all other fields in calendar struct
 
-	cfg.addCalendar(&newCal)
+	cfg.addCalendar(*newCal)
 	saveCalConfig(cfg)
+
+	return true, nil
 }
