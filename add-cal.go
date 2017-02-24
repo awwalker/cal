@@ -1,36 +1,60 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-
 	"github.com/urfave/cli"
 )
 
-var addCalCmd = cli.Command{
-	Name:   "addCal",
-	Usage:  "Configure new calendar",
-	Action: addCal,
+var configCmd = cli.Command{
+	Name:   "config",
+	Usage:  "Configure calendar setup",
+	Action: mainConfig,
 }
 
-func addCal() (bool, error) {
+var (
+	addCalFlags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "secret, s",
+			Usage: "Path to clientId.json",
+		},
+	}
+)
+
+func mainConfig(ctx *cli.Context) error {
+	//TODO: Check arguments
+	args := ctx.Args()
+
+	command := args[0]
+	alias := args[1]
+
+	secret := ctx.String("secret")
+
+	if command == "add" {
+		addCal(alias, secret)
+	} else if command == "rm" {
+		//removeCal(alias)
+	}
+	return nil
+}
+
+func addCal(alias, secretPath string) error {
 	cfg, err := loadCalConfig()
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	reader := bufio.NewReader(os.Stdin)
 	newCal := new(calendar)
+	newCal.Alias = alias
 
-	fmt.Println("Enter calendar alias: ")
-	aliasTemp, _ := reader.ReadString('\n')
-	newCal.Alias = aliasTemp
-
-	// TODO: repeat for all other fields in calendar struct
+	if secretPath != "" {
+		token, oauthConfig, err := getOauth(alias, secretPath)
+		if err == nil {
+			newCal.Token = token
+			newCal.OAuthConfig = oauthConfig
+		}
+	}
 
 	cfg.addCalendar(*newCal)
 	saveCalConfig(cfg)
 
-	return true, nil
+	return nil
 }

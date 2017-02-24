@@ -18,7 +18,7 @@ func main() {
 }
 
 func registerApp() *cli.App {
-	registerCmd(addCalCmd)
+	registerCmd(configCmd)
 
 	app := cli.NewApp()
 	app.Usage = "Manage calendar from the Command Line"
