@@ -7,21 +7,11 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-
-	"golang.org/x/oauth2"
 )
 
 type config struct {
 	Version   string              `json:"version"`
 	Calendars map[string]calendar `json:"calendars"`
-}
-
-type calendar struct {
-	Secret   string        `json:"secret"`
-	ID       string        `json:"id"`
-	ClientID string        `json:"client_id"`
-	Alias    string        `json:"alias"`
-	Token    *oauth2.Token `json:"oauth_token, omitempty"`
 }
 
 // newConfig - create a new config.
@@ -89,6 +79,26 @@ func getCalConfigDir() (string, error) {
 	// TODO: (@hc1334) differentiate windows OS.
 	configDir := filepath.Join(homeDir, globalCalConfigDir)
 	return configDir, nil
+}
+
+// createCalAliasDir - create a dir for each calendar aliased in the config.
+func createCalAliasDir(alias string) error {
+	configDir, err := getCalConfigDir()
+	if err != nil {
+		return err
+	}
+	// Create new dir under config dir for each calendar alias.
+	path := filepath.Join(configDir, alias)
+	return os.MkdirAll(path, 0700)
+}
+
+// getCalAliasDir - given a calendar alias get the directory it's client_id.json is stored in.
+func getCalAliasDir(alias string) (string, error) {
+	calDir, err := getCalConfigDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(calDir, alias), nil
 }
 
 // Create a new Config directory
