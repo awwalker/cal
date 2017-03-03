@@ -24,6 +24,10 @@ func registerApp() *cli.App {
 	app.Usage = "Manage calendar from the Command Line"
 	app.Flags = append(calFlags, globalCalFlags...)
 	app.Version = "0.0.1"
+	app.Commands = commands
+	app.CommandNotFound = func(ctx *cli.Context, command string) {
+		cli.ShowAppHelp(ctx)
+	}
 	return app
 }
 

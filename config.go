@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 )
 
+// Details stored inside the conig file.
 type config struct {
 	Version   string              `json:"version"`
 	Calendars map[string]calendar `json:"calendars"`
@@ -123,6 +124,7 @@ func getCalConfigPath() (string, error) {
 	return filepath.Join(dir, globalCalConfigFile), nil
 }
 
+// isCalConfigExists - Verifies is a config currently exists.
 func isCalConfigExists() bool {
 	configPath, err := getCalConfigPath()
 	if err != nil {
