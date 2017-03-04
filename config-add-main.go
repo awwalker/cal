@@ -43,7 +43,7 @@ func addCal(alias, secretPath string) error {
 	if err != nil {
 		return err
 	}
-	// The to be stored calendar.
+	// The new calendar to be stored calendar.
 	newCal := calendar{
 		Alias: alias,
 	}

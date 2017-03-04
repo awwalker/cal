@@ -15,7 +15,7 @@ var configCmd = cli.Command{
 	Flags:  append(configFlags, globalCalFlags...),
 	Subcommands: []cli.Command{
 		configAddCmd,
-		// configRemoveCmd,
+		configRemoveCmd,
 	},
 }
 
