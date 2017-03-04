@@ -25,9 +25,11 @@ var configAddCmd = cli.Command{
 // mainAddCal - controls flow of the config add command.
 // Responsible for argument parsing and then execution of the command.
 func mainAddCal(ctx *cli.Context) error {
-	// TODO: @hc1334 validate arguments passed in. If anything breaks just display
-	// the help page.
-	// Need to have at least the alias.
+	if len(ctx.Args()) == 0 {
+		// Requires user to enter alias of calendar being added.
+		cli.ShowCommandHelp(ctx, ctx.Args().First())
+		return nil
+	}
 	alias := ctx.Args()[0]
 	secretPath := ctx.String("secret")
 	return addCal(alias, secretPath)
@@ -45,6 +47,7 @@ func addCal(alias, secretPath string) error {
 	newCal := calendar{
 		Alias: alias,
 	}
+
 	// If path to .json is not provided assume oAuth is unnecessary.
 	if secretPath != "" {
 		// Retrieve a new oauth for the calendar.
