@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"path/filepath"
 
 	gCalendar "google.golang.org/api/calendar/v3"
 
@@ -31,8 +30,8 @@ func tokenFromWeb(config *oauth2.Config) *oauth2.Token {
 	return tok
 }
 
-// saveToken - save a token to the config file under the calendar it belongs to.
-func saveToken(token *oauth2.Token, alias string) error {
+// saveOAuth - save a token to the config file under the calendar it belongs to.
+func saveOAuth(token *oauth2.Token, config *oauth2.Config, alias string) error {
 	cfg, err := loadCalConfig()
 	if err != nil {
 		return err
@@ -43,46 +42,43 @@ func saveToken(token *oauth2.Token, alias string) error {
 	}
 	curCalendar := cfg.Calendars[alias]
 	curCalendar.Token = token
+	curCalendar.OAuthConfig = config
 	saveCalConfig(cfg)
 	return nil
 }
 
 // tokenFromConfig - returned a cached token if one exists.
-func tokenFromConfig(alias string) (*oauth2.Token, error) {
+func oAuthFromConfig(alias string) (*oauth2.Token, *oauth2.Config, error) {
 	cfg, err := loadCalConfig()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	// If alias exists.
+	cal, ok := cfg.Calendars[alias]
+	if !ok {
+		return nil, nil, fmt.Errorf("No Alias in Config Matching: %s", alias)
 	}
 	// If a token exists.
-	if cfg.Calendars[alias].Token != nil {
-		return cfg.Calendars[alias].Token, nil
+	if cal.Token != nil && cal.OAuthConfig != nil {
+		return cal.Token, cal.OAuthConfig, nil
 	}
-	return nil, fmt.Errorf("No Token in Config.")
+	return nil, nil, fmt.Errorf("Could not get OAuth information")
 }
 
-// getToken - returns an oauth token from either a cache or instantiates a new one.
-func getToken(alias string) (*oauth2.Token, error) {
-	oAuthToken, err := tokenFromConfig(alias)
+// getOAuth - sets an oauth token from either a cache or instantiates a new one for a calendar.
+func getOAuth(alias, clientPath string) (*oauth2.Token, *oauth2.Config, error) {
+	oAuthToken, oAuthConfig, err := oAuthFromConfig(alias)
 	if err != nil {
-		// Assumes OAuth Config is stored in ~/.cal/client_id.json
-		calConfigDir, err := getCalConfigDir()
+		// Assumes OAuth Config is stored in clientPath.
+		clientBytes, err := ioutil.ReadFile(clientPath)
 		if err != nil {
-			return nil, err
-		}
-		clientID := filepath.Join(calConfigDir, globalCalClientIDFile)
-		clientBytes, err := ioutil.ReadFile(clientID)
-		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		oAuthConfig, err := google.ConfigFromJSON(clientBytes, gCalendar.CalendarScope)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		oAuthToken = tokenFromWeb(oAuthConfig)
-		// Only need to cache here.
-		if err := saveToken(oAuthToken, alias); err != nil {
-			return nil, err
-		}
 	}
-	return oAuthToken, nil
+	return oAuthToken, oAuthConfig, nil
 }
